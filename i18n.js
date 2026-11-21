@@ -16,7 +16,8 @@ window.I18N = {
     noShareLocal: 'Your browser cannot share the screen. Open this page on a computer in Chrome, Edge or Firefox.',
     noAnswer: 'No answer from the other person.', showEnded: 'Sharing ended.', videoErr: 'Video connection error.', youLeft: 'You disconnected.',
     lang: 'Language',
-    iceFailed: "Could not establish a video connection between your networks.", videoConnecting: "Connecting video…" },
+    iceFailed: "Could not establish a video connection between your networks.", videoConnecting: "Connecting video…",
+    phoneViewOnly: "On a phone you can only view other screens. To show yours, open this site on a computer." },
 
   ru: { name: 'Русский',
     title: 'Удалённый просмотр', h1: 'Удалённый просмотр экрана', yourId: 'Ваш ID', copy: 'Копировать', copied: 'Скопировано', copyFail: 'Не вышло',
@@ -34,7 +35,8 @@ window.I18N = {
     noShareLocal: 'Ваш браузер не поддерживает показ экрана. Откройте страницу на компьютере в Chrome, Edge или Firefox.',
     noAnswer: 'Собеседник не ответил.', showEnded: 'Показ завершён.', videoErr: 'Ошибка видеосвязи.', youLeft: 'Вы отключились.',
     lang: 'Язык',
-    iceFailed: "Не удалось установить видеосоединение между вашими сетями.", videoConnecting: "Подключаем видео…" },
+    iceFailed: "Не удалось установить видеосоединение между вашими сетями.", videoConnecting: "Подключаем видео…",
+    phoneViewOnly: "С телефона можно только смотреть чужой экран. Чтобы показать свой — откройте сайт на компьютере." },
 
   uk: { name: 'Українська',
     title: 'Віддалений перегляд', h1: 'Віддалений перегляд екрана', yourId: 'Ваш ID', copy: 'Копіювати', copied: 'Скопійовано', copyFail: 'Не вдалося',
@@ -52,7 +54,8 @@ window.I18N = {
     noShareLocal: "Ваш браузер не підтримує показ екрана. Відкрийте сторінку на комп'ютері в Chrome, Edge або Firefox.",
     noAnswer: 'Співрозмовник не відповів.', showEnded: 'Показ завершено.', videoErr: "Помилка відеозв'язку.", youLeft: 'Ви відключилися.',
     lang: 'Мова',
-    iceFailed: "Не вдалося встановити відеоз'єднання між вашими мережами.", videoConnecting: "Підключаємо відео…" },
+    iceFailed: "Не вдалося встановити відеоз'єднання між вашими мережами.", videoConnecting: "Підключаємо відео…",
+    phoneViewOnly: "З телефона можна лише переглядати чужий екран. Щоб показати свій — відкрийте сайт на комп'ютері." },
 
   de: { name: 'Deutsch',
     title: 'Fernansicht', h1: 'Bildschirm aus der Ferne ansehen', yourId: 'Ihre ID', copy: 'Kopieren', copied: 'Kopiert', copyFail: 'Fehlgeschlagen',
@@ -70,7 +73,8 @@ window.I18N = {
     noShareLocal: 'Ihr Browser kann den Bildschirm nicht teilen. Öffnen Sie die Seite am Computer in Chrome, Edge oder Firefox.',
     noAnswer: 'Keine Antwort vom Partner.', showEnded: 'Freigabe beendet.', videoErr: 'Fehler der Videoverbindung.', youLeft: 'Sie haben die Verbindung getrennt.',
     lang: 'Sprache',
-    iceFailed: "Die Videoverbindung zwischen Ihren Netzwerken konnte nicht hergestellt werden.", videoConnecting: "Video wird verbunden…" },
+    iceFailed: "Die Videoverbindung zwischen Ihren Netzwerken konnte nicht hergestellt werden.", videoConnecting: "Video wird verbunden…",
+    phoneViewOnly: "Auf dem Handy können Sie nur fremde Bildschirme ansehen. Um Ihren zu zeigen, öffnen Sie die Seite am Computer." },
 
   fr: { name: 'Français',
     title: 'Vue à distance', h1: 'Voir un écran à distance', yourId: 'Votre ID', copy: 'Copier', copied: 'Copié', copyFail: 'Échec',
@@ -88,7 +92,8 @@ window.I18N = {
     noShareLocal: "Votre navigateur ne peut pas partager l'écran. Ouvrez cette page sur un ordinateur dans Chrome, Edge ou Firefox.",
     noAnswer: 'Pas de réponse de votre correspondant.', showEnded: 'Partage terminé.', videoErr: 'Erreur de connexion vidéo.', youLeft: 'Vous vous êtes déconnecté.',
     lang: 'Langue',
-    iceFailed: "Impossible d'établir la connexion vidéo entre vos réseaux.", videoConnecting: "Connexion de la vidéo…" },
+    iceFailed: "Impossible d'établir la connexion vidéo entre vos réseaux.", videoConnecting: "Connexion de la vidéo…",
+    phoneViewOnly: "Sur un téléphone, vous pouvez seulement voir d'autres écrans. Pour montrer le vôtre, ouvrez ce site sur un ordinateur." },
 
   es: { name: 'Español',
     title: 'Vista remota', h1: 'Ver una pantalla a distancia', yourId: 'Tu ID', copy: 'Copiar', copied: 'Copiado', copyFail: 'Error',
@@ -106,7 +111,8 @@ window.I18N = {
     noShareLocal: 'Tu navegador no puede compartir la pantalla. Abre esta página en un ordenador con Chrome, Edge o Firefox.',
     noAnswer: 'La otra persona no respondió.', showEnded: 'Se dejó de compartir.', videoErr: 'Error de conexión de vídeo.', youLeft: 'Te has desconectado.',
     lang: 'Idioma',
-    iceFailed: "No se pudo establecer la conexión de vídeo entre las redes.", videoConnecting: "Conectando el vídeo…" },
+    iceFailed: "No se pudo establecer la conexión de vídeo entre las redes.", videoConnecting: "Conectando el vídeo…",
+    phoneViewOnly: "En el teléfono solo puedes ver otras pantallas. Para mostrar la tuya, abre este sitio en un ordenador." },
 
   it: { name: 'Italiano',
     title: 'Visione remota', h1: 'Visualizza uno schermo a distanza', yourId: 'Il tuo ID', copy: 'Copia', copied: 'Copiato', copyFail: 'Errore',
@@ -124,7 +130,8 @@ window.I18N = {
     noShareLocal: 'Il tuo browser non può condividere lo schermo. Apri questa pagina su un computer con Chrome, Edge o Firefox.',
     noAnswer: "Nessuna risposta dall'altra persona.", showEnded: 'Condivisione terminata.', videoErr: 'Errore di connessione video.', youLeft: 'Ti sei disconnesso.',
     lang: 'Lingua',
-    iceFailed: "Impossibile stabilire la connessione video tra le reti.", videoConnecting: "Connessione del video…" },
+    iceFailed: "Impossibile stabilire la connessione video tra le reti.", videoConnecting: "Connessione del video…",
+    phoneViewOnly: "Dal telefono puoi solo vedere altri schermi. Per mostrare il tuo, apri questo sito su un computer." },
 
   pt: { name: 'Português',
     title: 'Visão remota', h1: 'Ver uma tela à distância', yourId: 'Seu ID', copy: 'Copiar', copied: 'Copiado', copyFail: 'Falhou',
@@ -142,7 +149,8 @@ window.I18N = {
     noShareLocal: 'Seu navegador não pode compartilhar a tela. Abra esta página em um computador no Chrome, Edge ou Firefox.',
     noAnswer: 'A outra pessoa não respondeu.', showEnded: 'Compartilhamento encerrado.', videoErr: 'Erro na conexão de vídeo.', youLeft: 'Você se desconectou.',
     lang: 'Idioma',
-    iceFailed: "Não foi possível estabelecer a conexão de vídeo entre as redes.", videoConnecting: "Conectando o vídeo…" },
+    iceFailed: "Não foi possível estabelecer a conexão de vídeo entre as redes.", videoConnecting: "Conectando o vídeo…",
+    phoneViewOnly: "No celular você só pode ver outras telas. Para mostrar a sua, abra este site em um computador." },
 
   pl: { name: 'Polski',
     title: 'Zdalny podgląd', h1: 'Zdalny podgląd ekranu', yourId: 'Twój ID', copy: 'Kopiuj', copied: 'Skopiowano', copyFail: 'Błąd',
@@ -160,7 +168,8 @@ window.I18N = {
     noShareLocal: 'Twoja przeglądarka nie może udostępnić ekranu. Otwórz stronę na komputerze w Chrome, Edge lub Firefox.',
     noAnswer: 'Rozmówca nie odpowiedział.', showEnded: 'Udostępnianie zakończone.', videoErr: 'Błąd połączenia wideo.', youLeft: 'Rozłączono.',
     lang: 'Język',
-    iceFailed: "Nie udało się nawiązać połączenia wideo między sieciami.", videoConnecting: "Łączenie wideo…" },
+    iceFailed: "Nie udało się nawiązać połączenia wideo między sieciami.", videoConnecting: "Łączenie wideo…",
+    phoneViewOnly: "Na telefonie możesz tylko oglądać cudze ekrany. Aby pokazać swój, otwórz stronę na komputerze." },
 
   tr: { name: 'Türkçe',
     title: 'Uzaktan Görüntüleme', h1: 'Ekranı uzaktan görüntüle', yourId: 'Kimliğiniz', copy: 'Kopyala', copied: 'Kopyalandı', copyFail: 'Başarısız',
@@ -178,7 +187,8 @@ window.I18N = {
     noShareLocal: 'Tarayıcınız ekran paylaşamıyor. Bu sayfayı bilgisayarda Chrome, Edge veya Firefox ile açın.',
     noAnswer: 'Karşı taraf yanıt vermedi.', showEnded: 'Paylaşım sona erdi.', videoErr: 'Video bağlantı hatası.', youLeft: 'Bağlantıyı kestiniz.',
     lang: 'Dil',
-    iceFailed: "Ağlar arasında video bağlantısı kurulamadı.", videoConnecting: "Video bağlanıyor…" },
+    iceFailed: "Ağlar arasında video bağlantısı kurulamadı.", videoConnecting: "Video bağlanıyor…",
+    phoneViewOnly: "Telefondan yalnızca başka ekranları görüntüleyebilirsiniz. Kendi ekranınızı göstermek için siteyi bilgisayarda açın." },
 
   zh: { name: '中文',
     title: '远程查看', h1: '远程查看屏幕', yourId: '你的 ID', copy: '复制', copied: '已复制', copyFail: '失败',
@@ -196,7 +206,8 @@ window.I18N = {
     noShareLocal: '你的浏览器无法共享屏幕。请在电脑上用 Chrome、Edge 或 Firefox 打开此页面。',
     noAnswer: '对方没有回应。', showEnded: '共享已结束。', videoErr: '视频连接错误。', youLeft: '你已断开连接。',
     lang: '语言',
-    iceFailed: "无法在双方网络之间建立视频连接。", videoConnecting: "正在连接视频…" },
+    iceFailed: "无法在双方网络之间建立视频连接。", videoConnecting: "正在连接视频…",
+    phoneViewOnly: "手机上只能查看别人的屏幕。要展示你的屏幕，请在电脑上打开本网站。" },
 
   ja: { name: '日本語',
     title: 'リモートビュー', h1: '画面をリモートで見る', yourId: 'あなたの ID', copy: 'コピー', copied: 'コピーしました', copyFail: '失敗',
@@ -214,7 +225,8 @@ window.I18N = {
     noShareLocal: 'お使いのブラウザは画面を共有できません。パソコンの Chrome、Edge、Firefox でこのページを開いてください。',
     noAnswer: '相手から応答がありません。', showEnded: '共有が終了しました。', videoErr: 'ビデオ接続エラー。', youLeft: '切断しました。',
     lang: '言語',
-    iceFailed: "ネットワーク間でビデオ接続を確立できませんでした。", videoConnecting: "ビデオに接続中…" },
+    iceFailed: "ネットワーク間でビデオ接続を確立できませんでした。", videoConnecting: "ビデオに接続中…",
+    phoneViewOnly: "スマートフォンでは他の画面を見ることしかできません。自分の画面を見せるには、パソコンでこのサイトを開いてください。" },
 
   lv: { name: 'Latviešu',
     title: 'Attālā skatīšana', h1: 'Ekrāna attālā skatīšana', yourId: 'Jūsu ID', copy: 'Kopēt', copied: 'Nokopēts', copyFail: 'Neizdevās',
@@ -232,7 +244,8 @@ window.I18N = {
     noShareLocal: 'Jūsu pārlūks neatbalsta ekrāna rādīšanu. Atveriet lapu datorā ar Chrome, Edge vai Firefox.',
     noAnswer: 'Sarunbiedrs neatbildēja.', showEnded: 'Rādīšana pabeigta.', videoErr: 'Video savienojuma kļūda.', youLeft: 'Jūs atvienojāties.',
     lang: 'Valoda',
-    iceFailed: "Neizdevās izveidot video savienojumu starp tīkliem.", videoConnecting: "Savieno video…" },
+    iceFailed: "Neizdevās izveidot video savienojumu starp tīkliem.", videoConnecting: "Savieno video…",
+    phoneViewOnly: "Tālrunī var tikai skatīt citu ekrānu. Lai parādītu savu, atveriet vietni datorā." },
 
   lt: { name: 'Lietuvių',
     title: 'Nuotolinė peržiūra', h1: 'Nuotolinė ekrano peržiūra', yourId: 'Jūsų ID', copy: 'Kopijuoti', copied: 'Nukopijuota', copyFail: 'Nepavyko',
@@ -250,7 +263,8 @@ window.I18N = {
     noShareLocal: 'Jūsų naršyklė nepalaiko ekrano rodymo. Atidarykite puslapį kompiuteryje su Chrome, Edge arba Firefox.',
     noAnswer: 'Pašnekovas neatsakė.', showEnded: 'Rodymas baigtas.', videoErr: 'Vaizdo ryšio klaida.', youLeft: 'Jūs atsijungėte.',
     lang: 'Kalba',
-    iceFailed: "Nepavyko užmegzti vaizdo ryšio tarp tinklų.", videoConnecting: "Jungiamas vaizdas…" },
+    iceFailed: "Nepavyko užmegzti vaizdo ryšio tarp tinklų.", videoConnecting: "Jungiamas vaizdas…",
+    phoneViewOnly: "Telefone galima tik žiūrėti kitų ekraną. Norėdami parodyti savo, atidarykite svetainę kompiuteryje." },
 
   et: { name: 'Eesti',
     title: 'Kaugvaade', h1: 'Ekraani vaatamine eemalt', yourId: 'Teie ID', copy: 'Kopeeri', copied: 'Kopeeritud', copyFail: 'Ebaõnnestus',
@@ -268,5 +282,6 @@ window.I18N = {
     noShareLocal: "Teie brauser ei toeta ekraani jagamist. Avage leht arvutis Chrome'i, Edge'i või Firefoxiga.",
     noAnswer: 'Vestluskaaslane ei vastanud.', showEnded: 'Jagamine lõpetatud.', videoErr: 'Videoühenduse viga.', youLeft: 'Katkestasite ühenduse.',
     lang: 'Keel',
-    iceFailed: "Võrkude vahel ei õnnestunud videoühendust luua.", videoConnecting: "Video ühendamine…" },
+    iceFailed: "Võrkude vahel ei õnnestunud videoühendust luua.", videoConnecting: "Video ühendamine…",
+    phoneViewOnly: "Telefonis saate ainult teiste ekraane vaadata. Oma ekraani näitamiseks avage leht arvutis." },
 };

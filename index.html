@@ -83,10 +83,16 @@
     display: flex; align-items: center; gap: 10px; padding: 8px 12px;
     background: #15171c; color: #eee; font-size: 14px; flex-wrap: wrap;
   }
-  .viewer-bar .grow { flex: 1; min-width: 0; }
+  .viewer-bar .grow { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 640px) {
+    .viewer-bar .stats { order: 10; flex-basis: 100%; }
+  }
   .viewer-bar .secondary { color: #eee; border-color: #444; }
-  .video-box { position: relative; flex: 1; min-height: 0; display: flex; }
-  .viewer video { flex: 1; min-height: 0; width: 100%; object-fit: contain; background: #000; }
+  .video-box { position: relative; flex: 1; min-height: 0; display: flex; overflow: hidden; touch-action: none; }
+  .viewer video {
+    flex: 1; min-height: 0; width: 100%; object-fit: contain; background: #000;
+    transform-origin: center center; will-change: transform; user-select: none; -webkit-user-select: none;
+  }
   .video-wait {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #bbb; font-size: 16px; pointer-events: none;
@@ -145,7 +151,7 @@
     <button class="secondary small" id="fsBtn" data-i18n="fullscreen"></button>
     <button class="danger small" id="disconnectBtn" data-i18n="disconnect"></button>
   </div>
-  <div class="video-box">
+  <div class="video-box" id="videoBox">
     <video id="remoteVideo" autoplay playsinline muted></video>
     <div class="video-wait" id="videoWait" data-i18n="videoConnecting"></div>
   </div>
@@ -169,6 +175,9 @@
   const VIDEO_TIMEOUT_MS = 20000; // если за это время не пришёл ни один кадр — сообщаем об ошибке
 
   const $ = id => document.getElementById(id);
+  // Может ли этот браузер показывать свой экран (на телефонах — нет)
+  const CAN_SHARE = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+  if (!CAN_SHARE) document.querySelector('.hint').dataset.i18n = 'phoneViewOnly';
   const fmt = id => id.replace(/(\d{3})(?=\d)/g, '$1 ');
   const digits = s => (s || '').replace(/\D/g, '');
   const store = {
@@ -325,6 +334,8 @@
 
   function handleRequest(conn, fromId) {
     if ((rejectCount[fromId] || 0) >= 3) { conn.send({ type: 'rejected' }); return; }
+    // Телефон и другие браузеры без захвата экрана — сразу отвечаем, не показывая бесполезный запрос
+    if (!CAN_SHARE) { conn.send({ type: 'error', code: 'noShareRemote' }); return; }
     if (hostConn || viewConn) { conn.send({ type: 'busy' }); return; }
 
     hostConn = conn;
@@ -443,6 +454,7 @@
       clearTimeout(viewTimer);
       const v = $('remoteVideo');
       $('videoWait').classList.remove('hide');
+      resetZoom();
       v.srcObject = stream;
       v.play().catch(() => {});
       // «Поток» приходит ещё до того, как соединение реально установлено — ждём первый кадр
@@ -515,10 +527,79 @@
     if (call) try { call.close(); } catch {}
     $('remoteVideo').srcObject = null;
     $('viewer').classList.remove('show');
+    resetZoom();
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
     $('connectBtn').disabled = !(peer && peer.open);
     setMsg(key, isErr);
   }
+
+  // =========================================================
+  //     МАСШТАБ: пальцы (телефон), колесо и двойной клик (ПК)
+  // =========================================================
+  const zoom = { s: 1, x: 0, y: 0 };
+  const MAX_ZOOM = 6;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function applyZoom() { $('remoteVideo').style.transform = `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.s})`; }
+  function resetZoom() { zoom.s = 1; zoom.x = 0; zoom.y = 0; applyZoom(); }
+  function boxRect() { return $('videoBox').getBoundingClientRect(); }
+  function rel(p) { const r = boxRect(); return { x: p.x - (r.left + r.width / 2), y: p.y - (r.top + r.height / 2) }; }
+  function clampPan() {
+    const r = boxRect();
+    const mx = r.width * (zoom.s - 1) / 2, my = r.height * (zoom.s - 1) / 2;
+    zoom.x = clamp(zoom.x, -mx, mx); zoom.y = clamp(zoom.y, -my, my);
+  }
+  // Масштабирование вокруг точки p (экранные координаты) с сохранением её положения
+  function zoomAt(p, newS, base = zoom) {
+    const f = rel(p);
+    newS = clamp(newS, 1, MAX_ZOOM);
+    zoom.x = f.x - (f.x - base.x) * (newS / base.s);
+    zoom.y = f.y - (f.y - base.y) * (newS / base.s);
+    zoom.s = newS;
+    clampPan(); applyZoom();
+  }
+  function toggleZoom(p) { if (zoom.s > 1.05) resetZoom(); else zoomAt(p, 2.5); }
+
+  (() => {
+    const box = $('videoBox');
+    const ptrs = new Map();
+    let g = null, lastTap = 0;
+    const pts = () => [...ptrs.values()];
+    const mid = p => ({ x: p.reduce((a, q) => a + q.x, 0) / p.length, y: p.reduce((a, q) => a + q.y, 0) / p.length });
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    function begin() {
+      const p = pts();
+      g = p.length ? { s: zoom.s, x: zoom.x, y: zoom.y, mid: mid(p), dist: p.length > 1 ? dist(p[0], p[1]) : 0 } : null;
+    }
+    box.addEventListener('pointerdown', e => {
+      try { box.setPointerCapture(e.pointerId); } catch {}
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      begin();
+      if (e.pointerType !== 'mouse' && ptrs.size === 1) {
+        const now = Date.now();
+        if (now - lastTap < 300) { toggleZoom({ x: e.clientX, y: e.clientY }); lastTap = 0; begin(); }
+        else lastTap = now;
+      }
+    });
+    box.addEventListener('pointermove', e => {
+      if (!ptrs.has(e.pointerId) || !g) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const p = pts(), m = mid(p);
+      const s = p.length > 1 && g.dist ? g.s * dist(p[0], p[1]) / g.dist : g.s;
+      zoomAt(g.mid, s, g);                       // масштаб вокруг исходной точки щипка
+      zoom.x += m.x - g.mid.x; zoom.y += m.y - g.mid.y; // плюс сдвиг пальцами
+      clampPan(); applyZoom();
+    });
+    const end = e => { ptrs.delete(e.pointerId); begin(); };
+    box.addEventListener('pointerup', end);
+    box.addEventListener('pointercancel', end);
+    box.addEventListener('dblclick', e => toggleZoom({ x: e.clientX, y: e.clientY }));
+    box.addEventListener('wheel', e => {
+      e.preventDefault();
+      zoomAt({ x: e.clientX, y: e.clientY }, zoom.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+    }, { passive: false });
+    window.addEventListener('resize', () => { clampPan(); applyZoom(); });
+  })();
 
   // ---- Обработчики интерфейса ----
   $('copyBtn').onclick = async () => {
@@ -535,9 +616,20 @@
   $('rejectBtn').onclick = rejectRequest;
   $('stopShareBtn').onclick = endHosting;
   $('disconnectBtn').onclick = () => endViewing('youLeft');
-  $('fsBtn').onclick = () => {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else $('viewer').requestFullscreen().catch(() => {});
+  // Полный экран. На iPhone для элементов его нет — там окно просмотра и так на весь экран, кнопку прячем.
+  const viewerEl = $('viewer');
+  const canFullscreen = !!(viewerEl.requestFullscreen || viewerEl.webkitRequestFullscreen);
+  if (!canFullscreen) $('fsBtn').style.display = 'none';
+  $('fsBtn').onclick = async () => {
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+    try {
+      await (viewerEl.requestFullscreen || viewerEl.webkitRequestFullscreen).call(viewerEl);
+      // На телефоне в полноэкранном режиме поворачиваем в альбомную ориентацию (где браузер позволяет)
+      if (screen.orientation && screen.orientation.lock && matchMedia('(pointer: coarse)').matches) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch {}
   };
   window.addEventListener('beforeunload', () => { endHosting(); endViewing(); if (peer) peer.destroy(); });
 
