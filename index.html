@@ -92,12 +92,14 @@
     color: #bbb; font-size: 16px; pointer-events: none;
   }
   .video-wait.hide { display: none; }
+  .stats { font: 12px/1.3 ui-monospace, Consolas, monospace; opacity: .75; font-weight: 400; }
 </style>
 </head>
 <body>
 
 <div class="banner" id="banner">
   <span id="bannerText"></span>
+  <span class="stats" id="hostStats"></span>
   <button class="small" id="stopShareBtn" data-i18n="stop"></button>
 </div>
 
@@ -139,6 +141,7 @@
 <div class="viewer" id="viewer">
   <div class="viewer-bar">
     <span class="grow" id="viewerTitle"></span>
+    <span class="stats" id="viewStats"></span>
     <button class="secondary small" id="fsBtn" data-i18n="fullscreen"></button>
     <button class="danger small" id="disconnectBtn" data-i18n="disconnect"></button>
   </div>
@@ -358,6 +361,7 @@
     const call = hostCall;
     call.on('close', () => { if (call === hostCall) endHosting(); });
     watchIce(call, () => { if (call === hostCall) endHosting(); });
+    stopHostStats = startStats(call, $('hostStats'), 'out');
 
     // Пользователь нажал «Прекратить доступ» в браузере
     hostStream.getVideoTracks()[0].addEventListener('ended', endHosting);
@@ -387,6 +391,7 @@
   function endHosting() {
     $('askOverlay').classList.remove('show');
     $('banner').classList.remove('show');
+    stopHostStats(); stopHostStats = () => {};
     stopStream();
     const call = hostCall, conn = hostConn;
     hostCall = null; hostConn = null;
@@ -432,6 +437,8 @@
     viewCall = call;
     call.answer();
     watchIce(call, () => { if (call === viewCall) failView('iceFailed'); });
+    stopViewStats();
+    stopViewStats = startStats(call, $('viewStats'), 'in');
     call.on('stream', stream => {
       clearTimeout(viewTimer);
       const v = $('remoteVideo');
@@ -452,6 +459,43 @@
 
   function failView(key) { endViewing(key, true); }
 
+  // Диагностика раз в секунду: тип соединения (direct/stun/turn), состояние ICE, разрешение, fps, скорость.
+  // Если fps > 0, а картинка чёрная — проблема в захвате экрана на стороне хоста, а не в сети.
+  function startStats(call, el, dir) {
+    const pc = call.peerConnection;
+    if (!pc) return () => {};
+    let lastBytes = 0, lastTs = 0;
+    const kinds = { host: 'direct', srflx: 'stun', prflx: 'stun', relay: 'turn' };
+    const timer = setInterval(async () => {
+      try {
+        const stats = await pc.getStats();
+        let rtp = null, pair = null, cands = {};
+        stats.forEach(s => {
+          if (s.type === (dir === 'in' ? 'inbound-rtp' : 'outbound-rtp') && s.kind === 'video') rtp = s;
+          if (s.type === 'candidate-pair' && (s.selected || (s.nominated && s.state === 'succeeded'))) pair = s;
+          if (s.type === 'local-candidate' || s.type === 'remote-candidate') cands[s.id] = s;
+        });
+        const parts = [pc.iceConnectionState];
+        if (pair) {
+          const l = cands[pair.localCandidateId], r = cands[pair.remoteCandidateId];
+          const k = [l, r].some(c => c && c.candidateType === 'relay') ? 'turn'
+                  : kinds[(l && l.candidateType) || ''] || '?';
+          parts.push(k);
+        }
+        if (rtp) {
+          const bytes = dir === 'in' ? rtp.bytesReceived : rtp.bytesSent;
+          const kbps = lastTs ? Math.round((bytes - lastBytes) * 8 / (rtp.timestamp - lastTs)) : 0;
+          lastBytes = bytes; lastTs = rtp.timestamp;
+          if (rtp.frameWidth) parts.push(rtp.frameWidth + '×' + rtp.frameHeight);
+          parts.push((rtp.framesPerSecond || 0) + ' fps', kbps + ' kbit/s');
+        }
+        el.textContent = parts.join(' · ');
+      } catch {}
+    }, 1000);
+    return () => { clearInterval(timer); el.textContent = ''; };
+  }
+  let stopHostStats = () => {}, stopViewStats = () => {};
+
   // Следим за состоянием WebRTC-соединения: 'failed' — сети не смогли соединиться
   function watchIce(call, onFail) {
     const pc = call.peerConnection;
@@ -464,6 +508,7 @@
 
   function endViewing(key, isErr) {
     clearTimeout(viewTimer);
+    stopViewStats(); stopViewStats = () => {};
     const conn = viewConn, call = viewCall;
     viewConn = null; viewCall = null; viewTarget = null;
     if (conn) { try { conn.send({ type: 'bye' }); } catch {} setTimeout(() => conn.close(), 300); }
