@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Удалённый просмотр</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --text: #1b1d22; --muted: #6b7280;
+    --border: #e2e4e9; --accent: #2563eb; --accent-text: #ffffff;
+    --danger: #dc2626; --ok: #16a34a; --shadow: 0 8px 30px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111318; --card: #1b1e25; --text: #eceef2; --muted: #9aa1ad;
+      --border: #2c3039; --accent: #3b82f6; --shadow: 0 8px 30px rgba(0,0,0,.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 32px 16px; }
+  h1 { font-size: 20px; margin: 0 0 20px; font-weight: 600; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .label { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+  .id-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .my-id {
+    font-size: 36px; font-weight: 700; letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .status { font-size: 14px; color: var(--muted); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.on { background: var(--ok); }
+  .dot.err { background: var(--danger); }
+  input {
+    width: 100%; font: inherit; font-size: 22px; letter-spacing: 2px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button {
+    font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 12px 18px;
+    background: var(--accent); color: var(--accent-text); cursor: pointer;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  button.danger { background: var(--danger); color: #fff; }
+  button.small { padding: 6px 12px; font-size: 14px; }
+  .full { width: 100%; margin-top: 12px; }
+  .msg { margin-top: 10px; font-size: 14px; min-height: 20px; }
+  .msg.err { color: var(--danger); }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 14px; }
+
+  /* Modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none;
+    align-items: center; justify-content: center; padding: 16px; z-index: 10;
+  }
+  .overlay.show { display: flex; }
+  .modal { background: var(--card); border-radius: 14px; padding: 22px; max-width: 400px; width: 100%; box-shadow: var(--shadow); }
+  .modal h2 { margin: 0 0 8px; font-size: 18px; }
+  .modal p { margin: 0 0 18px; color: var(--muted); }
+  .modal .btns { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+  /* Banner while sharing */
+  .banner {
+    position: fixed; top: 0; left: 0; right: 0; display: none; z-index: 5;
+    background: var(--danger); color: #fff; padding: 10px 16px;
+    align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; font-weight: 600;
+  }
+  .banner.show { display: flex; }
+  .banner button { background: #fff; color: var(--danger); }
+
+  /* Viewer */
+  .viewer { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; z-index: 8; }
+  .viewer.show { display: flex; }
+  .viewer-bar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    background: #15171c; color: #eee; font-size: 14px; flex-wrap: wrap;
+  }
+  .viewer-bar .grow { flex: 1; min-width: 0; }
+  .viewer video { flex: 1; min-height: 0; width: 100%; object-fit: contain; background: #000; }
+</style>
+</head>
+<body>
+
+<div class="banner" id="banner">
+  <span id="bannerText">Ваш экран смотрят</span>
+  <button class="small" id="stopShareBtn">Остановить</button>
+</div>
+
+<div class="wrap">
+  <h1>Удалённый просмотр экрана</h1>
+
+  <div class="card">
+    <div class="label">Ваш ID</div>
+    <div class="id-row">
+      <div class="my-id" id="myId">— — —</div>
+      <button class="secondary small" id="copyBtn" disabled>Копировать</button>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Подключение к серверу…</span></div>
+  </div>
+
+  <div class="card">
+    <div class="label">ID собеседника</div>
+    <input id="targetInput" inputmode="numeric" autocomplete="off" placeholder="123 456 789" maxlength="11">
+    <button class="full" id="connectBtn" disabled>Посмотреть экран</button>
+    <div class="msg" id="connectMsg"></div>
+    <div class="hint">Чтобы показать свой экран — сообщите свой ID собеседнику и подтвердите запрос, когда он появится.</div>
+  </div>
+</div>
+
+<div class="overlay" id="askOverlay">
+  <div class="modal">
+    <h2>Запрос на просмотр</h2>
+    <p id="askText">Пользователь хочет посмотреть ваш экран.</p>
+    <div class="btns">
+      <button class="secondary" id="rejectBtn">Отклонить</button>
+      <button id="acceptBtn">Разрешить</button>
+    </div>
+  </div>
+</div>
+
+<div class="viewer" id="viewer">
+  <div class="viewer-bar">
+    <span class="grow" id="viewerTitle">Экран</span>
+    <button class="secondary small" id="fsBtn" style="color:#eee;border-color:#444">Во весь экран</button>
+    <button class="danger small" id="disconnectBtn">Отключиться</button>
+  </div>
+  <video id="remoteVideo" autoplay playsinline muted></video>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(() => {
+  // ---- Настройки ----
+  const PREFIX = 'rview-';          // пространство имён в PeerJS Cloud, пользователю не показывается
+  const REQUEST_TIMEOUT_MS = 60000; // сколько ждём ответа хоста
+  const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    // Сюда можно добавить бесплатный TURN (Cloudflare / Metered):
+    // { urls: 'turn:...', username: '...', credential: '...' },
+  ];
+
+  const $ = id => document.getElementById(id);
+  const fmt = id => id.replace(/(\d{3})(?=\d)/g, '$1 ');
+  const digits = s => (s || '').replace(/\D/g, '');
+
+  let peer = null;
+  let myId = null;
+
+  // Состояние хоста
+  let hostConn = null;      // соединение со зрителем (запрос/активная сессия)
+  let hostCall = null;
+  let hostStream = null;
+  const rejectCount = {};   // защита от спама запросами
+
+  // Состояние зрителя
+  let viewConn = null;
+  let viewCall = null;
+  let viewTarget = null;
+  let viewTimer = null;
+
+  function setStatus(text, kind) {
+    $('statusText').textContent = text;
+    $('dot').className = 'dot' + (kind ? ' ' + kind : '');
+  }
+  function setMsg(text, isErr) {
+    $('connectMsg').textContent = text || '';
+    $('connectMsg').className = 'msg' + (isErr ? ' err' : '');
+  }
+
+  function newId() {
+    let s = String(1 + Math.floor(Math.random() * 9));
+    for (let i = 0; i < 8; i++) s += Math.floor(Math.random() * 10);
+    return s;
+  }
+  function storedId() {
+    try { return localStorage.getItem('rview-id'); } catch { return null; }
+  }
+  function storeId(id) {
+    try { localStorage.setItem('rview-id', id); } catch {}
+  }
+
+  // ---- Регистрация на сервере сигнализации ----
+  function start(id, attempt = 0) {
+    myId = id;
+    $('myId').textContent = fmt(id);
+    setStatus('Подключение к серверу…');
+    peer = new Peer(PREFIX + id, { config: { iceServers: ICE_SERVERS } });
+
+    peer.on('open', () => {
+      storeId(id);
+      setStatus('Готово к работе', 'on');
+      $('copyBtn').disabled = false;
+      $('connectBtn').disabled = false;
+    });
+
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') {
+        peer.destroy();
+        // После перезагрузки страницы сервер ещё пару секунд держит старый ID — пробуем его ещё раз
+        if (attempt === 0 && id === storedId()) setTimeout(() => start(id, 1), 3000);
+        else if (attempt < 5) start(newId(), attempt + 1);
+        else setStatus('Не удалось получить ID. Обновите страницу.', 'err');
+        return;
+      }
+      if (err.type === 'peer-unavailable') {
+        failView('Этот ID не в сети. Проверьте номер.');
+        return;
+      }
+      if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error') {
+        setStatus('Нет связи с сервером. Переподключение…', 'err');
+        return;
+      }
+      console.warn('peer error', err);
+    });
+
+    const p = peer;
+    p.on('disconnected', () => {
+      if (p.destroyed || p !== peer) return; // это мы сами закрыли его при смене ID
+      setStatus('Нет связи с сервером. Переподключение…', 'err');
+      setTimeout(() => { if (p === peer && !p.destroyed && p.disconnected) p.reconnect(); }, 2000);
+    });
+
+    peer.on('connection', onIncomingConnection);
+    peer.on('call', onIncomingCall);
+  }
+
+  // =========================================================
+  //                        ХОСТ
+  // =========================================================
+  function onIncomingConnection(conn) {
+    const fromId = conn.peer.startsWith(PREFIX) ? conn.peer.slice(PREFIX.length) : null;
+    if (!fromId) { conn.close(); return; }
+
+    conn.on('open', () => {
+      conn.on('data', msg => {
+        if (!msg || typeof msg !== 'object') return;
+        if (msg.type === 'request') handleRequest(conn, fromId);
+        else if (msg.type === 'bye' && conn === hostConn) endHosting();
+      });
+    });
+    conn.on('close', () => { if (conn === hostConn) endHosting(); });
+  }
+
+  function handleRequest(conn, fromId) {
+    if ((rejectCount[fromId] || 0) >= 3) { conn.send({ type: 'rejected' }); return; }
+    if (hostConn || viewConn) { conn.send({ type: 'busy' }); return; }
+
+    hostConn = conn;
+    $('askText').textContent = `Пользователь ${fmt(fromId)} хочет посмотреть ваш экран. Разрешить?`;
+    $('askOverlay').classList.add('show');
+  }
+
+  async function acceptRequest() {
+    $('askOverlay').classList.remove('show');
+    const conn = hostConn;
+    if (!conn) return;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      conn.send({ type: 'error', text: 'Браузер собеседника не умеет показывать экран (например, телефон).' });
+      alert('Ваш браузер не поддерживает показ экрана. Откройте страницу на компьютере в Chrome, Edge или Firefox.');
+      endHosting();
+      return;
+    }
+
+    try {
+      hostStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: { ideal: 30, max: 30 } }, audio: false
+      });
+    } catch (e) {
+      conn.send({ type: 'error', text: 'Собеседник не выбрал экран для показа.' });
+      endHosting();
+      return;
+    }
+    if (conn !== hostConn) { stopStream(); return; } // зритель ушёл, пока выбирали экран
+
+    conn.send({ type: 'accepted' });
+    hostCall = peer.call(conn.peer, hostStream);
+    hostCall.on('close', () => { if (hostCall) endHosting(); });
+
+    // Пользователь нажал «Прекратить доступ» в браузере
+    hostStream.getVideoTracks()[0].addEventListener('ended', endHosting);
+
+    const fromId = conn.peer.slice(PREFIX.length);
+    $('bannerText').textContent = `Ваш экран смотрит ${fmt(fromId)}`;
+    $('banner').classList.add('show');
+  }
+
+  function rejectRequest() {
+    $('askOverlay').classList.remove('show');
+    if (hostConn) {
+      const fromId = hostConn.peer.slice(PREFIX.length);
+      rejectCount[fromId] = (rejectCount[fromId] || 0) + 1;
+      try { hostConn.send({ type: 'rejected' }); } catch {}
+      const c = hostConn;
+      hostConn = null;
+      setTimeout(() => c.close(), 500);
+    }
+  }
+
+  function stopStream() {
+    if (hostStream) hostStream.getTracks().forEach(t => t.stop());
+    hostStream = null;
+  }
+
+  function endHosting() {
+    $('askOverlay').classList.remove('show');
+    $('banner').classList.remove('show');
+    stopStream();
+    const call = hostCall, conn = hostConn;
+    hostCall = null; hostConn = null;
+    if (call) try { call.close(); } catch {}
+    if (conn) { try { conn.send({ type: 'bye' }); } catch {} setTimeout(() => conn.close(), 300); }
+  }
+
+  // =========================================================
+  //                        ЗРИТЕЛЬ
+  // =========================================================
+  function connectTo() {
+    const target = digits($('targetInput').value);
+    if (target.length < 6 || target.length > 9) { setMsg('Введите ID из цифр (до 9).', true); return; }
+    if (target === myId) { setMsg('Это ваш собственный ID.', true); return; }
+    if (hostConn || viewConn) { setMsg('Сначала завершите текущий сеанс.', true); return; }
+
+    viewTarget = target;
+    setMsg('Ожидаем подтверждения у собеседника…');
+    $('connectBtn').disabled = true;
+
+    const conn = peer.connect(PREFIX + target, { reliable: true });
+    viewConn = conn;
+
+    viewTimer = setTimeout(() => failView('Собеседник не ответил.'), REQUEST_TIMEOUT_MS);
+
+    conn.on('open', () => conn.send({ type: 'request', mode: 'view' }));
+    conn.on('data', msg => {
+      if (!msg || typeof msg !== 'object' || conn !== viewConn) return;
+      switch (msg.type) {
+        case 'accepted': setMsg('Подтверждено, подключаемся…'); break;
+        case 'rejected': failView('Собеседник отклонил запрос.'); break;
+        case 'busy':     failView('Собеседник сейчас занят другим сеансом.'); break;
+        case 'error':    failView(msg.text || 'Ошибка на стороне собеседника.'); break;
+        case 'bye':      endViewing('Собеседник завершил показ.'); break;
+      }
+    });
+    conn.on('close', () => { if (conn === viewConn) endViewing('Соединение закрыто.'); });
+  }
+
+  function onIncomingCall(call) {
+    // Принимаем видео только от того, к кому сами подключались
+    if (!viewConn || call.peer !== PREFIX + viewTarget) { call.close(); return; }
+    viewCall = call;
+    call.answer();
+    call.on('stream', stream => {
+      clearTimeout(viewTimer);
+      const v = $('remoteVideo');
+      v.srcObject = stream;
+      v.play().catch(() => {});
+      $('viewerTitle').textContent = `Экран ${fmt(viewTarget)}`;
+      $('viewer').classList.add('show');
+      setMsg('');
+    });
+    call.on('close', () => { if (call === viewCall) endViewing('Показ завершён.'); });
+    call.on('error', () => { if (call === viewCall) endViewing('Ошибка видеосвязи.', true); });
+  }
+
+  function failView(text) { endViewing(text, true); }
+
+  function endViewing(text, isErr) {
+    clearTimeout(viewTimer);
+    const conn = viewConn, call = viewCall;
+    viewConn = null; viewCall = null; viewTarget = null;
+    if (conn) { try { conn.send({ type: 'bye' }); } catch {} setTimeout(() => conn.close(), 300); }
+    if (call) try { call.close(); } catch {}
+    $('remoteVideo').srcObject = null;
+    $('viewer').classList.remove('show');
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    $('connectBtn').disabled = !(peer && peer.open);
+    setMsg(text || '', isErr);
+  }
+
+  // ---- Обработчики интерфейса ----
+  $('copyBtn').onclick = async () => {
+    try { await navigator.clipboard.writeText(myId); $('copyBtn').textContent = 'Скопировано'; }
+    catch { $('copyBtn').textContent = 'Не вышло'; }
+    setTimeout(() => $('copyBtn').textContent = 'Копировать', 1500);
+  };
+  $('targetInput').addEventListener('input', e => {
+    const d = digits(e.target.value).slice(0, 9);
+    e.target.value = fmt(d);
+  });
+  $('targetInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('connectBtn').disabled) connectTo(); });
+  $('connectBtn').onclick = connectTo;
+  $('acceptBtn').onclick = acceptRequest;
+  $('rejectBtn').onclick = rejectRequest;
+  $('stopShareBtn').onclick = endHosting;
+  $('disconnectBtn').onclick = () => endViewing('Вы отключились.');
+  $('fsBtn').onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else $('viewer').requestFullscreen().catch(() => {});
+  };
+  window.addEventListener('beforeunload', () => { endHosting(); endViewing(); if (peer) peer.destroy(); });
+
+  // ?id=123456789 в ссылке — сразу подставить номер
+  const pre = digits(new URLSearchParams(location.search).get('id'));
+  if (pre) $('targetInput').value = fmt(pre.slice(0, 9));
+
+  const saved = storedId();
+  start(saved && /^[1-9]\d{8}$/.test(saved) ? saved : newId());
+})();
+</script>
+</body>
+</html>
